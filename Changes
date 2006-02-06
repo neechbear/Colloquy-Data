@@ -1,3 +1,8 @@
+Version 1.14 - 6th February 2006
+    + Modified Makefile.PL to be aware of automated testing
+      environment variable and default to no to send usage
+      information.
+
 Version 1.13 - 12th January 2006
     + Fixed POD so that it actually passes the
       Test::Pod::Coverage unit tests, and fixed
