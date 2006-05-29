@@ -91,11 +91,16 @@ sub _read_file {
 	my $group_write = ($mode & S_IWGRP) >> 3;
 	my $other_write = $mode & S_IWOTH;
 
-	if ($^W && $group_write) {
-		cluck "WARNING! $file is group writeable. This is potentially insecure!";
-	}
-	if ($other_write) {
-		croak "FATAL! $file is world writeable. This insecure file cannot be evaluated!";
+	# Since this module started using Safe to parse the data files,
+	# this code is no longer as important as before. It's now only
+	# a warning.
+#	if ($^W && $group_write) {
+#		cluck "WARNING! $file is group writeable. This is potentially insecure!";
+#	}
+	#if ($other_write) {
+	if ($^W && $other_write) {
+		#croak "FATAL! $file is world writeable. This insecure file cannot be evaluated!";
+		cluck "WARNING! $file is world writeable. This is potentially insecure!";
 	}
 
 	if (open(FH,"<$file")) {
@@ -240,11 +245,11 @@ a seperate LUA file for each user and list, which are located in the
 users and lists directories in the Colloquy data directory. These files
 are read one by one and evaluated in the same way.
 
-This module should therefore be used with caution if you cannot gaurentee
-the integrity of the user and list LUA files! The module will issue a
-warning complaining about write group permissions if $^W warnings are
-enabled, and will die if any of the LUA files have world writable
-permissions.
+This module compiles and execute the Colloquy data files in restricted
+compartments using the L<Safe> module. Even so, this module should be
+used with caution if you cannot gaurentee the integrity of the user and
+list LUA files. The module will issue a warning complaining about world
+writable permissions if $^W warnings.
 
 =head1 EXPORTS
 
