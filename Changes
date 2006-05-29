@@ -1,3 +1,9 @@
+Version 1.15 - 29th May 2006
+    + Changed to use Module::Build.
+
+    + Added use of Safe module to prevent code injection
+      through the evaluation of the Colloquy data files.
+
 Version 1.14 - 6th February 2006
     + Modified Makefile.PL to be aware of automated testing
       environment variable and default to no to send usage
