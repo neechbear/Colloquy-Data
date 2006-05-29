@@ -14,7 +14,8 @@ $build = Module::Build->new(
 		sign               => 0,
 
 		requires => {
-			'Carp'           => 0, # 1.04
+			'Carp'         => 0, # 1.04
+			'Safe'         => 2.11, # 2.11
 		},
 
 		recommends => {

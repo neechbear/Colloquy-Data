@@ -26,10 +26,13 @@ use strict;
 use Exporter;
 use Fcntl ':mode';
 use Carp qw(cluck croak);
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+use Safe;
+
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $DEBUG);
 use constant DEFAULT_DATADIR => '/usr/local/colloquy/data';
 
 $VERSION     = '1.15' || sprintf('%d', q$Revision$ =~ /(\d+)/g);
+$DEBUG       = $ENV{DEBUG} ? 1 : 0;
 @ISA         = qw(Exporter);
 @EXPORT      = ();
 @EXPORT_OK   = qw(&lists &users &caps &commify);
@@ -112,9 +115,16 @@ sub _get_data {
 	my $users = {};
 	croak "Insufficient permissions to read $users_lua\n" unless -r $users_lua;
 
+	my $c = new Safe;
+	# Minimum safe opcode set for building data structures lineseq, list and
+	# padany needed for perl 5.8.7
+	$c->permit_only(qw(rv2sv sassign aelem aelemfast helem anonlist anonhash
+				pushmark refgen const undef leaveeval lineseq list padany));
+
 	if (-f $users_lua) {
 		my $coderef = _munge_user_lua( '$' . _read_file($users_lua) );
-		eval $coderef;
+		$users = $c->reval($coderef);
+		#eval $coderef;
 
 	} elsif (-d $users_lua) {
 		if (opendir(DH,$users_lua)) {
@@ -126,7 +136,9 @@ sub _get_data {
 				}
 				my $coderef = _munge_user_lua( _read_file("$users_lua/$user") );
 				if (length($coderef) > 9 && $coderef =~ /return {.+}/gsi) {
-					eval { $users->{$user} = eval $coderef; }
+					$users->{$user} = $c->reval($coderef);
+					DUMP('$users',$users);
+					#eval { $users->{$user} = eval $coderef; }
 				} else {
 					cluck "Caught known Colloquy data file corruption for user $user";
 				}
@@ -142,7 +154,8 @@ sub _get_data {
 
 	if (-f $lists_lua) {
 		my $coderef = _munge_list_lua( '$' . _read_file($lists_lua) );
-		eval $coderef;
+		$lists = $c->reval($coderef);
+		#eval $coderef;
 
 	} elsif (-d $lists_lua) {
 		if (opendir(DH,$lists_lua)) {
@@ -153,7 +166,13 @@ sub _get_data {
 					next;
 				}
 				my $coderef = _munge_list_lua( _read_file("$lists_lua/$list") );
-				$lists->{$list} = eval $coderef;
+				if (length($coderef) > 9 && $coderef =~ /return {.+}/gsi) {
+					$lists->{$list} = $c->reval($coderef);
+					DUMP('$lists',$lists);
+					#$lists->{$list} = eval $coderef;
+				} else {
+					cluck "Caught known Colloquy data file corruption for list $list";
+				}
 			}
 			closedir(DH);
 		} else {
@@ -171,6 +190,19 @@ sub _get_data {
 	}
 
 	return ($users,$lists);
+}
+
+sub TRACE {
+	return unless $DEBUG;
+	warn(shift());
+}
+
+sub DUMP {
+	return unless $DEBUG;
+	eval {
+		require Data::Dumper;
+		warn(shift().': '.Data::Dumper::Dumper(shift()));
+	}
 }
 
 1;
@@ -224,7 +256,7 @@ Returns lists and users hash references, in that order.
 
 =head1 SEE ALSO
 
-L<http://freshmeat.net/projects/colloquy-talker/>
+L<http://freshmeat.net/projects/colloquy-talker/>, L<Apache2::AuthColloquy>
 
 =head1 VERSION
 
