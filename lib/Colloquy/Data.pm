@@ -66,6 +66,7 @@ sub _munge_user_lua {
 	s/'/\\'/g;
 	s/"/'/g; #"'
 	s/(\s+[a-z0-9]+\s+=)(\s+['{\d+])/$1>$2/gi;
+	s/^return //;
 	return $_;
 }
 
@@ -76,6 +77,7 @@ sub _munge_list_lua {
 	s/"/'/g; #"'
 	s/(\s+[a-z0-9]+\s+=)(\s+['{\d+])/$1>$2/gi;
 	s/(\s+members\s+=>\s+)\{(.+?)\}/$1 [ ( $2 ) ]/sgi;
+	s/^return //;
 	return $_;
 }
 
@@ -135,7 +137,9 @@ sub _get_data {
 					next;
 				}
 				my $coderef = _munge_user_lua( _read_file("$users_lua/$user") );
-				if (length($coderef) > 9 && $coderef =~ /return {.+}/gsi) {
+				if (length($coderef) > 9 && $coderef =~ /^\s*(return )?{.+}\s*$/gsi) {
+#				if (length($coderef) > 9 && $coderef =~ /return {.+}/gsi) {
+					DUMP('$coderef',$coderef);
 					$users->{$user} = $c->reval($coderef);
 					DUMP('$users',$users);
 					#eval { $users->{$user} = eval $coderef; }
@@ -166,7 +170,9 @@ sub _get_data {
 					next;
 				}
 				my $coderef = _munge_list_lua( _read_file("$lists_lua/$list") );
-				if (length($coderef) > 9 && $coderef =~ /return {.+}/gsi) {
+				if (length($coderef) > 9 && $coderef =~ /^\s*(return )?{.+}\s*$/gsi) {
+#				if (length($coderef) > 9 && $coderef =~ /return {.+}/gsi) {
+					DUMP('$coderef',$coderef);
 					$lists->{$list} = $c->reval($coderef);
 					DUMP('$lists',$lists);
 					#$lists->{$list} = eval $coderef;
