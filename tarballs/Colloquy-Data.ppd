@@ -1,0 +1,10 @@
+<SOFTPKG NAME="Colloquy-Data" VERSION="1,15,0,0">
+    <TITLE>Colloquy-Data</TITLE>
+    <ABSTRACT>Read Colloquy 1.3 and 1.4 data files</ABSTRACT>
+    <AUTHOR>Nicola Worthington &lt;nicolaw@cpan.org&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <DEPENDENCY NAME="Safe" VERSION="2,11,0,0" />
+        <DEPENDENCY NAME="Carp" VERSION="0,0,0,0" />
+        <CODEBASE HREF="PPM-Colloquy-Data-1.15.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>
