@@ -1,10 +1,12 @@
 # $Id$
 
+chdir('t') if -d 't';
+
 use strict;
 use Test::More;
 eval "use Test::Deep";
 if ($@) { plan skip_all => "Test::Deep required for testing parse_lin()"; }
-else { plan tests => 23; }
+else { plan tests => 3; }
 
 use lib qw(./lib ../lib);
 use Colloquy::Data qw(:all);
